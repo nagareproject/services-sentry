@@ -134,7 +134,7 @@ class Sentry(plugin.Plugin):
             name: SPECS[type(value)](value)
             for name, value in sentry_sdk.consts.DEFAULT_OPTIONS.items()
             if not name.startswith(('_', 'dsn', 'dist', 'default_integrations', 'integrations', 'transport', 'release'))
-        },
+        }
     )
 
     FEEDBACK_JS = textwrap.dedent('''\

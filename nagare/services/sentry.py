@@ -117,11 +117,6 @@ class Sentry(plugin.Plugin):
         integrations='string_list(default=list({}))'.format(', '.join(
             '"{}"'.format(integration) for integration in DEFAULT_INTEGRATIONS
         )),
-        **{
-            name: SPECS[type(value)](value)
-            for name, value in sentry_sdk.consts.DEFAULT_OPTIONS.items()
-            if not name.startswith(('_', 'dsn', 'dist', 'default_integrations', 'integrations', 'transport', 'release'))
-        },
         user_feedback={
             'activated': 'boolean(default=False)',
             'title': 'string(default=None)',
@@ -134,7 +129,12 @@ class Sentry(plugin.Plugin):
             'label_submit': 'string(default=None)',
             'error_form_entry': 'string(default=None)',
             'success_message': 'string(default=None)',
-        }
+        },
+        **{
+            name: SPECS[type(value)](value)
+            for name, value in sentry_sdk.consts.DEFAULT_OPTIONS.items()
+            if not name.startswith(('_', 'dsn', 'dist', 'default_integrations', 'integrations', 'transport', 'release'))
+        },
     )
 
     FEEDBACK_JS = textwrap.dedent('''\

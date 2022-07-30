@@ -18,6 +18,7 @@ import textwrap
 
 import sentry_sdk
 from sentry_sdk.integrations import _wsgi_common
+from sentry_sdk import set_context, set_tag, add_breadcrumb  # noqa: F401
 
 from nagare.services import plugin
 from nagare.server import reference
@@ -102,10 +103,8 @@ class RequestExtractor(_wsgi_common.RequestExtractor):
 class Sentry(plugin.Plugin):
     LOAD_PRIORITY = 109  # After the state service
     DEFAULT_INTEGRATIONS = {
-        # 'sentry_sdk.integrations.stdlib:StdlibIntegration',
         'sentry_sdk.integrations.dedupe:DedupeIntegration',
         'sentry_sdk.integrations.atexit:AtexitIntegration',
-        'sentry_sdk.integrations.modules:ModulesIntegration',
         'sentry_sdk.integrations.argv:ArgvIntegration'
     }
     CONFIG_SPEC = dict(

@@ -129,6 +129,9 @@ class Sentry(plugin.Plugin):
             'error_form_entry': 'string(default=None)',
             'success_message': 'string(default=None)',
         },
+        tags={
+            '___many___': 'string()'
+        },
         **{
             name: SPECS[type(value)](value)
             for name, value in sentry_sdk.consts.DEFAULT_OPTIONS.items()
@@ -149,14 +152,14 @@ class Sentry(plugin.Plugin):
     def __init__(
         self,
         name, dist,
-        _app_name, dsn, simplified, send_default_pii, user_feedback, integrations,
+        _app_name, dsn, simplified, send_default_pii, user_feedback, tags, integrations,
         exceptions_service, services_service,
         **config
     ):
         services_service(
             super(Sentry, self).__init__, name, dist,
             dsn=dsn, simplified=simplified, send_default_pii=send_default_pii,
-            user_feedback=user_feedback, integration=integrations,
+            user_feedback=user_feedback, tags=tags, integration=integrations,
             **config
         )
         self.app_name = _app_name
@@ -164,6 +167,7 @@ class Sentry(plugin.Plugin):
         self.simplified = simplified
         self.send_default_pii = send_default_pii
         self.has_user_feedback = user_feedback.pop('activated')
+        self.tags = tags
         self.user_feedback = {
             re.sub('_(.)', lambda m: m.group(1).upper(), k): v
             for k, v
@@ -188,7 +192,7 @@ class Sentry(plugin.Plugin):
             **config
         )
 
-        exceptions_service.add_http_exception_handler(self.handle_http_exception)
+        exceptions_service.add_exception_handler(self.handle_exception)
 
     def handle_request(self, chain, **params):
         sentry_sdk.set_tag('application', self.app_name)
@@ -196,6 +200,9 @@ class Sentry(plugin.Plugin):
         session_id = params.get('session_id')
         if session_id is not None:
             sentry_sdk.set_tag('session', session_id)
+
+        for tag_name, tag_value in self.tags.items():
+            sentry_sdk.set_tag(tag_name, tag_value)
 
         return chain.next(**params)
 
@@ -209,8 +216,10 @@ class Sentry(plugin.Plugin):
 
         return sentry_sdk.utils.event_from_exception((exc_type, exc_value, last_chain_seen or exc_tb))
 
-    def handle_http_exception(self, http_exception, request=None, **params):
-        if http_exception.status_code // 100 == 5:
+    def handle_exception(self, exception, request=None, **params):
+        status_code = getattr(exception, 'status_code', None)
+
+        if not status_code or (exception.status_code // 100 == 5):
             event, hint = self.event_from_exception(*sys.exc_info())
 
             if self.send_default_pii:
@@ -221,15 +230,15 @@ class Sentry(plugin.Plugin):
 
             event_id = sentry_sdk.capture_event(event, hint=hint)
 
-            if self.has_user_feedback and event_id:
+            if status_code and self.has_user_feedback and event_id:
                 feedback_script = self.FEEDBACK_JS % (self.dsn, json.dumps(dict(self.user_feedback, eventId=event_id)))
 
-                if http_exception.has_body:
-                    before, body_end, after = http_exception.text.partition('</body>')
+                if exception.has_body:
+                    before, body_end, after = exception.text.partition('</body>')
                     if body_end:
-                        http_exception.text = before + feedback_script + body_end + after
+                        exception.text = before + feedback_script + body_end + after
                 else:
-                    template = http_exception.body_template_obj.template
-                    http_exception.body_template_obj = string.Template(template + feedback_script)
+                    template = exception.body_template_obj.template
+                    exception.body_template_obj = string.Template(template + feedback_script)
 
-        return http_exception
+        return exception

@@ -1,0 +1,2 @@
+[nagare.services]
+sentry = nagare.services.sentry:Sentry

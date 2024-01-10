@@ -1,6 +1,66 @@
+# =-
+# (C)opyright Net-ng 2023
+#
+# This is Net-ng proprietary source code
+# Any reproduction modification or use without prior written
+# approval from Net-ng is strictly forbidden.
+# =-
+
 [build-system]
 requires = ['setuptools', 'wheel', 'setuptools_scm']
 build-backend = 'setuptools.build_meta'
 
 [tool.setuptools_scm]
 
+[project]
+name = 'nagare-services-sentry'
+dynamic = ['version', 'entry-points']
+description = 'Sentry service'
+authors = [{ name = 'Net-ng' }, { email = 'contact@net-ng.com' }]
+license = { file = 'LICENSE.txt' }
+requires-python = '>=3.7'
+dependencies = ['sentry-sdk', 'nagare-services', 'nagare-server']
+
+[project.readme]
+file = 'README.rst'
+content-type = 'text/x-rst'
+
+[tool.setuptools.dynamic]
+entry-points = { file = 'entry-points.txt' }
+
+[project.optional-dependencies]
+dev = [
+    'sphinx',
+    'sphinx_rtd_theme',
+    'pre-commit',
+    'ruff',
+    'pytest',
+    'twine',
+]
+
+[project.urls]
+Homepage = 'https://nagare.org'
+Documentation = 'https://nagare.org/doc'
+Source = 'https://github.com/nagareproject/services-sentry'
+Tracker = 'https://github.com/nagareproject/services-sentry/issues'
+
+[tool.ruff]
+select = ['ALL']
+ignore = ['ANN', 'ARG', 'COM812', 'D10', 'D203', 'FBT002', 'ISC001', 'PLR', 'RUF012']
+line-length = 120
+src = ['src']
+
+[tool.ruff.flake8-quotes]
+inline-quotes = 'single'
+
+[tool.ruff.pydocstyle]
+convention = 'google'
+
+[tool.ruff.isort]
+length-sort = true
+
+[tool.ruff.format]
+quote-style = 'single'
+
+[tool.pytest.ini_options]
+testpaths = ['tests']

@@ -1,5 +1,5 @@
 # --
-# Copyright (c) 2008-2024 Net-ng.
+# Copyright (c) 2008-2025 Net-ng.
 # All rights reserved.
 #
 # This software is licensed under the BSD License, as described in
@@ -242,7 +242,7 @@ class Sentry(plugin.Plugin):
 
         exceptions_service.add_exception_handler(self.handle_exception)
 
-    def process_event(self, event, hint, request=None, session_id=None, **params):
+    def process_event(self, request, session_id, event, hint):
         tags = event.setdefault('tags', {})
 
         if session_id is not None:
@@ -259,10 +259,11 @@ class Sentry(plugin.Plugin):
         return event
 
     def handle_request(self, chain, **params):
-        with sentry_sdk.configure_scope() as scope:
-            scope.add_event_processor(partial(self.process_event, **params))
+        sentry_sdk.get_global_scope().add_event_processor(
+            partial(self.process_event, params.get('request'), params.get('session_id'))
+        )
 
-            return chain.next(**params)
+        return chain.next(**params)
 
     def handle_exception(self, exception, **params):
         status_code = getattr(exception, 'status_code', None)

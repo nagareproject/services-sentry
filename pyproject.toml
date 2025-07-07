@@ -1,10 +1,10 @@
-# =-
-# (C)opyright Net-ng 2008-2024
+# --
+# (C)opyright Net-ng 2008-2025
 #
 # This is Net-ng proprietary source code
 # Any reproduction modification or use without prior written
 # approval from Net-ng is strictly forbidden.
-# =-
+# --
 
 [build-system]
 requires = ['setuptools', 'wheel', 'setuptools_scm']
@@ -45,22 +45,16 @@ Source = 'https://github.com/nagareproject/services-sentry'
 Tracker = 'https://github.com/nagareproject/services-sentry/issues'
 
 [tool.ruff]
+src = ['src']
+line-length = 120
+format.quote-style = 'single'
+
+[tool.ruff.lint]
 select = ['ALL']
 ignore = ['ANN', 'ARG', 'COM812', 'D10', 'D203', 'FBT002', 'ISC001', 'PLR', 'RUF012']
-line-length = 120
-src = ['src']
-
-[tool.ruff.flake8-quotes]
-inline-quotes = 'single'
-
-[tool.ruff.pydocstyle]
-convention = 'google'
-
-[tool.ruff.isort]
-length-sort = true
-
-[tool.ruff.format]
-quote-style = 'single'
+isort.length-sort = true
+pydocstyle.convention = 'google'
+flake8-quotes.inline-quotes = 'single'
 
 [tool.pytest.ini_options]
 testpaths = ['tests']
